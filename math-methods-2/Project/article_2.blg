@@ -1,0 +1,68 @@
+This is BibTeX, Version 0.99d (TeX Live 2019/Arch Linux)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: article_2.aux
+The style file: ieeetr.bst
+Database file #1: article_2.bib
+Warning--entry type for "CUDAZone" isn't style-file defined
+--line 92 of file article_2.bib
+Warning--entry type for "CUDAnative" isn't style-file defined
+--line 99 of file article_2.bib
+Warning--entry type for "CuArrays" isn't style-file defined
+--line 104 of file article_2.bib
+Warning--entry type for "GPUArrays" isn't style-file defined
+--line 109 of file article_2.bib
+Warning--entry type for "CUDA_jl" isn't style-file defined
+--line 114 of file article_2.bib
+Warning--entry type for "CUDAapi" isn't style-file defined
+--line 119 of file article_2.bib
+Warning--entry type for "GPUBenchmarks" isn't style-file defined
+--line 124 of file article_2.bib
+Warning--entry type for "JetsonNano" isn't style-file defined
+--line 129 of file article_2.bib
+Too many commas in name 1 of "Lee, V.W., Changkyu, K., et. al." for entry GPUvsCPU
+while executing---line 969 of file ieeetr.bst
+Too many commas in name 1 of "Lee, V.W., Changkyu, K., et. al." for entry GPUvsCPU
+while executing---line 969 of file ieeetr.bst
+Warning--empty author and editor in WolfGladrow:2005
+You've used 19 entries,
+            1876 wiz_defined-function locations,
+            557 strings with 5658 characters,
+and the built_in function-call counts, 2145 in all, are:
+= -- 169
+> -- 46
+< -- 0
++ -- 28
+- -- 9
+* -- 82
+:= -- 274
+add.period$ -- 9
+call.type$ -- 19
+change.case$ -- 18
+chr.to.int$ -- 0
+cite$ -- 20
+duplicate$ -- 117
+empty$ -- 338
+format.name$ -- 9
+if$ -- 554
+int.to.chr$ -- 0
+int.to.str$ -- 19
+missing$ -- 8
+newline$ -- 61
+num.names$ -- 9
+pop$ -- 98
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 95
+stack$ -- 0
+substring$ -- 0
+swap$ -- 8
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 1
+while$ -- 9
+width$ -- 21
+write$ -- 123
+(There were 2 error messages)

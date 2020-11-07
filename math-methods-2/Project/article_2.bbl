@@ -1,0 +1,76 @@
+\begin{thebibliography}{10}
+
+\bibitem{McNamaraZanetti}
+G.~McNamara, G. \&~Zanetti, ``Use of a boltzmann equation to simulate
+  lattice-gas automata,'' {\em Phys. Rev. Lett.}, 1988.
+
+\bibitem{HigueraJimenez}
+J.~Higuera, F. \&~Jimenez, ``Boltzmann approach to lattice gas simulations,''
+  {\em Europhys. Lett.}, 1989.
+
+\bibitem{PerumalDass:2015Review}
+A.~K. Permaul, D. A. \&~Dass, ``A review on the development of lattice
+  boltzmann computation of macro fluid flows and heat transfer,'' {\em
+  Alexandria Engineering Journal}, 2015.
+
+\bibitem{ChenDoolen}
+G.~D. Chen, S. \&~Doolen, ``Lattice boltzmann method for fluid flows,'' {\em
+  Annual Review of Fluid Mechanics}, 1998.
+
+\bibitem{GPUvsCPU}
+C.~K. e.~a. Lee, V.W., ``Debunking the 100x gpu vs. cpu myth: an evaluation of
+  throughput computing on cpu and gpu,'' {\em ACM SIGARCH Computer Architecture
+  News}, 2010.
+
+\bibitem{JuliaLang}
+``\href{https://julialang.org}{The Julia Programming Languages}.''
+
+\bibitem{JuliaGithub}
+``\href{https://github.com/JuliaLang/julia}{Julia Github}.''
+
+\bibitem{Perkel:2019}
+J.~M. Perkel,
+  ``\href{https://www.nature.com/articles/d41586-019-02310-3}{Julia: come for
+  the syntax, stay for the speed},'' {\em Nature}, 2019.
+
+\bibitem{JuliaBenchmarks}
+``\href{https://julialang.org/benchmarks}{Julia Micro-Benchmarks}.''
+
+\bibitem{CUDAZone}
+Nvidia, ``\href{https://developer.nvidia.com/cuda-zone}{CUDA Zone}.''
+
+\bibitem{CUDA_jl}
+``\href{https://github.com/JuliaGPU/CUDA.jl}{CUDA.jl Github}.''
+
+\bibitem{CUDAnative}
+``\href{https://github.com/JuliaGPU/CUDAnative.jl}{CUDAnative.jl Github}.''
+
+\bibitem{CuArrays}
+``\href{https://github.com/JuliaGPU/CuArrays.jl}{CuArrays.jl Github}.''
+
+\bibitem{GPUArrays}
+``\href{https://github.com/JuliaGPU/GPUArrays.jl}{GPUArrays.jl Github}.''
+
+\bibitem{GPUBenchmarks}
+``\href{https://github.com/JuliaGPU/GPUBenchmarks.jl}{GPUBenchmarks.jl
+  Github}.''
+
+\bibitem{CUDAapi}
+``\href{https://github.com/JuliaGPU/CUDAapi.jl}{CUDAapi.jl Github}.''
+
+\bibitem{JetsonNano}
+Nvidia,
+  ``\href{https://developer.nvidia.com/embedded/jetson-nano-developer-kit}{Jetson
+  Nano Developer Kit}.''
+
+\bibitem{WolfGladrow:2005}
+{\em Lattice-Gas Cellular Automata and Lattice Boltzmann Models - An
+  Introduction}.
+\newblock Spring, 2005.
+
+\bibitem{PerumalDass:2008Simulation}
+A.~K. Perumal, D. A. \&~Dass, ``Simulation of flow in two-sided lid-driven
+  square cavities by the lattice boltzmann method,'' {\em Advances in Fluid
+  Mechanics}, 2008.
+
+\end{thebibliography}

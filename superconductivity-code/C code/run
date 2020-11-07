@@ -1,0 +1,21 @@
+#!/bin/bash 
+#C=/usr/local/mpich-1.2.7p1/bin/
+#Exec=/opt/local/bin/mpirun-mpich-mp
+Exec=mpirun
+
+for dv in  0 
+do 
+
+cat > input.dat << EOF
+1  0  # self-consist OP & Free En?
+0.5	# t - temperature
+20	# LX = half x-range
+18 20	-2  # Di, Df, dD -  initial to final film thickness
+50	# approx number of FS points
+0	# readOPfilm for initial Di and t
+EOF
+
+${Exec} -np 2 ./domain
+#${Exec} -f machinefile -np 33 ./domain
+
+done 

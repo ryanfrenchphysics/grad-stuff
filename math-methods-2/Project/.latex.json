@@ -1,0 +1,11 @@
+{
+  "projectPath": "/home/ryan/Desktop/PHSX567/Project",
+  "title": "LaTeX-Plus Project",
+  "root": "article_2.tex",
+  "program": "pdflatex",
+  "latexmkOptions": "-bibtex -pdf -shell-escape",
+  "output": ".latex",
+  "openOutput": "true",
+  "postAction": "link",
+  "postPath": ""
+}

@@ -1,0 +1,394 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+\documentclass[twoside]{article}
+
+\input{structure.tex} % Include the file specifying the document structure and custom commands
+
+\usepackage[sc]{mathpazo} % Use the Palatino font
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\linespread{1.05} % Line spacing - Palatino needs more space between lines
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+
+% \usepackage[noadjust]{cite}
+
+\usepackage[english]{babel} % Language hyphenation and typographical rules
+
+% \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+
+\usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
+
+\usepackage{enumitem} % Customized lists
+\setlist[itemize]{noitemsep} % Make itemize lists more compact
+
+\usepackage{abstract} % Allows abstract customization
+\renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
+\renewcommand{\abstracttextfont}{\normalfont\small\itshape} % Set the abstract itself to small italic text
+
+\usepackage{titlesec} % Allows customization of titles
+\renewcommand\thesection{\Roman{section}} % Roman numerals for the sections
+\renewcommand\thesubsection{\roman{subsection}} % roman numerals for subsections
+\titleformat{\section}[block]{\large\scshape}{\thesection.}{1em}{} % Change the look of the section titles
+\titleformat{\subsection}[block]{\large}{\thesubsection.}{1em}{} % Change the look of the section titles
+
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+\fancyhead{} % Blank out the default header
+\fancyfoot{} % Blank out the default footer
+\fancyhead[C]{Parallel GPU Implementation of the 2D Lattice-Boltzmann Method in Julia $\bullet$ May 2020} % Custom header text
+\fancyfoot[RO,LE]{\thepage} % Custom footer text
+
+\usepackage{titling} % Customizing the title section
+\usepackage{hyperref} % For hyperlinks in the PDF
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{tocbibind}
+\usepackage[toc, page]{appendix}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{algorithm}
+% \usepackage{algorithmic}
+
+\renewcommand{\appendixpagename}{Appendix}
+
+\DeclareMathSizes{10}{7}{7}{5}
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\setlength{\droptitle}{-4\baselineskip} % Move the title up
+
+\pretitle{\begin{center}\Huge\bfseries} % Article title formatting
+\posttitle{\end{center}} % Article title closing formatting
+\title{Parallel GPU Implementation of the 2D Lattice-Boltzmann Method in Julia} % Article title
+\author{%
+\textsc{Ryan French} \\[1ex] % Your name
+\normalsize Montana State University \\ % Your institution
+\normalsize ryanfrenchphysics@gmail.com % Your email address
+%\and % Uncomment if 2 authors are required, duplicate these 4 lines if more
+%\textsc{Jane Smith}\thanks{Corresponding author} \\[1ex] % Second author's name
+%\normalsize University of Utah \\ % Second author's institution
+%\normalsize \href{mailto:jane@smith.com}{jane@smith.com} % Second author's email address
+}
+\date{\today} % Leave empty to omit a date
+\renewcommand{\maketitlehookd}{%
+\begin{abstract}
+\noindent TODO once the implementation and results have been confirmed. \textbf{NOTE: I will have to move to a 1-column article format, due to the length of some of the equations (they are too small in 2-column format)}
+\end{abstract}
+}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+\setlength{\abovedisplayskip}{6pt}
+\setlength{\belowdisplayskip}{6pt}
+
+% Print the title
+\maketitle
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\section{Introduction}
+\subsection{Method}
+
+Macroscopic computational fluid dynamics (CFD) is dominated by iterative forms of the Navier-Stokes equations, which is derived from applying classical conservation laws to fluids, along with terms describing viscosity and pressure. Methods derived from Navier-Stokes are very accurate and provide the best macroscopic solutions to a variety of problems in physics and engineering. \\
+
+\noindent Bridging the gap between macroscopic and microscopic CFD methods is the Lattice-Boltzmann method (LBM), a relatively recent development forged from the method of Lattice gas automata (LGA). LGA, which is based on a d-dimensional lattice, suffered from non-Galilean invariance and unphysical pressure and viscosity relationships. In 1988, McNamara and Zanetti\cite{McNamaraZanetti} modified LGA by neglecting particle correlations and introducing averaged distribution functions. Later, Higuera and Jimenez\cite{HigueraJimenez} presented a Lattice Boltzmann Equation, which featured a linearized collision operator that assumes a local near-equilibrium state\cite{PerumalDass:2015Review}.\\
+
+\noindent Because LBM is a mesoscopic theory based around distribution functions within a small volume element, the results from this theory are easily transformed into macroscopic results (in fact, it is possible to derive the Navier-Stokes equations from Lattice-Boltzmann equations). See\cite{ChenDoolen} for the full derivation. This fact presents LBM as a viable method of CFD, as opposed to current finite-difference and finite-volume methods.\\
+
+\noindent Arguably one of the greatest strengths of LBM is that one can easily integrate it into distributed programming methods, because it is a theory based on nearest-neighbors instead of fields. It has historically been implemented on parallelized CPUs, using methods such as method-passing interfaces (MPIs). More recently, however, distributing the code on graphical processing units (GPUs) has become popular, due to their modern affordability. While it has commonly been claimed that GPUs achieve  2 to 3 orders of magnitude better performance over CPUs in distributed programming, these claims may fall quite short of reality, as demonstrated in\cite{GPUvsCPU}. However, it should be noted that GPUs are easily optimized and can indeed achieve speeds of 2.5x to 10x the speed of similar CPU setups.
+
+\subsection{Program Implementation}
+
+Julia is a high-level, dynamically-typed, high-performance language\cite{JuliaLang}\cite{JuliaGithub}. Originally designed for technical and scientific applications, it is now gaining attraction in economics and statistics. The reason it is loved by its users is simple, and can be summed up by the popular phrase: "[Julia] runs like C, reads like Python."\cite{Perkel:2019}\\
+
+\noindent What makes Julia special is its just-in-time (JIT) compiler, which compiles code into efficient LLVM on the fly. This compiler, combined with the option for static typing, often creates programs that perform just as quickly as statically-compiled languages like C, Go, and Fortran.\cite{JuliaBenchmarks}. Julia is designed for parallel computing, and the efficienty of threading translates well into the well-supported GPU modules.\\
+
+\noindent The most popular GPU programming language is CUDA (Compute Unified Device Architecture), a version of C designed for parallel computing on Nvidia GPUs\cite{CUDAZone}. Because Julia can natively use C (in fact, writing C in-line with Julia code is supported by the standard library), there exist several high-level CUDA modules which simply exist as wrappers around CUDA's base code. The relevant parallel programming modules used in the development of this project are CUDA.jl\cite{CUDA_jl}, CUDAnative\cite{CUDAnative}, CuArrays\cite{CuArrays}, GPUArrays\cite{GPUArrays}, GPUBenchmarks\cite{GPUBenchmarks}, and CUDAapi\cite{CUDAapi}.\\
+
+\noindent A convenient way of implementing this CUDA code is to use a development kit containing an Nvidia GPU. Luckily, the Nvidia Jetson Nano\cite{JetsonNano} is a cheap board on which to run parallelized GPU programs. The Nano contains 128 Nvidia GPU cores, which can perform up to 0.5 TFLOPs. A custom Linux distribution, derived from Ubuntu, must be downloaded from Nvidia's website and flashed to a Micro-SD card, which also serves as the kit's hard drive. Included with the distribution is a broad set of libraries and APIs for optimizing code on the GPUs.\\
+
+%-----------------------------------------------
+
+\section{Theory}
+\subsection{Equation Statements}
+
+\noindent The lattice in LBM follows a $D_xQ_y$ convention, where $x$ is the number of dimensions and $y$ represents the number of particle velocities. The intended dimensionality of this paper is 2D, and the \(D_2Q_9\) model will be used because of its popularity.\\
+
+\noindent The LBE is stated as follows\cite{WolfGladrow:2005}:
+%
+\begin{equation}
+f_i(\mathbf{r} + \mathbf{c_1}\Delta t, t + \Delta t) = f_i(\mathbf{r};t) + \Omega_{ij}\left(f_j^{(0)}(\textbf{r};t) - f_j(\mathbf{r};t)\right)
+\end{equation}
+%
+
+\noindent where $f_i$ are the distribution function and $f_i^{(0)}$ are equilibrium distribution functions along the $i$th direction, respectively, and $\Omega_{ij}$ is a tensor based on collision terms in the classic continuum Boltzmann equation.\\
+
+
+\noindent Commonly implemented is the Lattice-Boltzmann Single-Relation-Time model\cite{PerumalDass:2008Simulation}:
+%
+\begin{equation}
+\label{LBM-SRT}
+f_i(\mathbf{r} + \mathbf{c_1}\Delta t, t + \Delta t) = -\frac{1}{\tau}\left(f_i(\mathbf{r};t) - f_i^{(0)}(\mathbf{r};t)\right)
+\end{equation}
+
+\noindent where $\tau$ is a characteristic relaxation time (time for volumetric element to reach equilibrium). Equation \ref{LBM-SRT} is updated in 2 steps:\\
+
+\noindent \underline{Collision step}:
+\begin{equation}
+\label{CollisionStep}
+\tilde{f}_i(\mathbf{x}, t) = f_i(\mathbf{x}, t) - \frac{1}{\tau}\left(f_i(\mathbf{x}, t) - f_i^{(0)}(\mathbf{x}, t)\right)
+\end{equation}
+
+\noindent \underline{Streaming step}:
+\begin{equation}
+\label{StreamingStep}
+\tilde{f}_i(\mathbf{x} + \mathbf{c}_i \Delta t, t + \Delta t) = \tilde{f}_i(\mathbf{x}, t)
+\end{equation}
+
+\noindent where $f_i$ and $\tilde{f}_i$ represent the pre- and post-collision states, respectively.\\
+
+\noindent Macroscopic quantities such as momentum density can be obtained in the expected way, given a distribution function:
+%
+\begin{equation*}
+\rho\mathbf{u} = \sum\limits_{i=0}^{N} f_i\mathbf{c}_i
+\end{equation*}
+
+\noindent where $N = 8$ for $D_2Q_9$ (i.e., 9 discrete velocities exist).\\
+
+
+
+\subsection{Discretization}
+
+The steps in equations \ref{CollisionStep} and \ref{StreamingStep} are approached in the following manner:
+
+\begin{enumerate}
+\item Construct a discretized lattice
+\item Choose \(f_i(x_0, t_0)\) for each point on the lattice
+\item Stream each individual lattice point (move each point in the direction its velocity's favors)
+\item Collide on each lattice point.
+\begin{enumerate}
+\item If two discrete fluid elements exist on the same point, use their velocities to decide subsequent velocities.
+\item If a fluid element exists at or within a boundary, apply necessary boundary condition to change the element's velocity.
+\end{enumerate}
+\item Repeat streaming and collision steps
+\end{enumerate}
+
+
+\noindent An algorithm for these steps can be found below:\\
+
+
+\begin{center}
+	% \begin{minipage}{0.8\linewidth} % Adjust the minipage width to accomodate for the length of algorithm lines
+	\begin{algorithm}
+	\caption{Lattice Boltzmann Method} % Algorithm name
+	\label{alg:KeyPress}   % optional label to refer to
+	\end{algorithm}
+		% \algsetup{indent=4em}
+		\begin{algorithmic}[H]
+			\KwIn{$(LAT, \nu, u_0)$:  Lattice Pts, Viscosity, Initial Velocities}  % Algorithm inputs
+			%\KwResult{$(c, d)$, such that $a+b = c + d$} % Algorithm outputs/results
+			\medskip
+			\STATE const weights::Array
+			\STATE  initialize distributions($LAT, weights, \nu, u_0$)
+			\STATE $\rho$ = calc\_densities()
+			\STATE $u_x, u_y$ = calc\_velocities()
+			\FOR{column pins}
+				\STATE Read Column Pin
+			\ENDFOR
+			\FOR{row pins}
+				\STATE Read Pin
+			\ENDFOR
+			\If{read pin}
+				\STATE add button press
+			\ENDIF
+			\STATE Clear Column Pin
+			\STATE Set Column Pins
+			\STATE Send I2C data
+		\end{algorithmic}
+		\end{algorithm}
+	% \end{minipage}
+\end{center}
+
+
+
+\section{Intentions (Temporary Section)}
+
+\noindent While LBM implementations exist in many languages (most notably C/C++ and Fortran, because of their compiled efficiency), the intent of this project is to develop an LBM framework for modeling 2-dimensional fluid flow in Julia, distributed among the  128 NVIDIA CUDA cores on the NVIDIA Jetson Nano (a development kit, much like the Raspberry Pi, optimized for things like parallel computing and AI tech). It boasts 0.5 TFLOPs, which will enable super-fast calculations for LBM, even with thousands of data points. This framework will (hopefully) be developed in such a way to also extend it to 3 dimensions in the future. Initial tests will involve creating a "wind tunnel" into which any type of shape can be placed. A simple graphical interface will be developed for ease of use, which will include sliders for viscosity, initial speed, and other necessary parameters, and will display quantities such as fluid curl, speed, and pressure. While there will be pre-defined shapes (like circles, steps, lines), the code will be modified to allow custom shapes defined by the user.\\
+
+\noindent Additional intentions include: modeling Poiseuille-Couette flow, modeling a water drop's evolving shape upon hitting a surface, and (potentially) adding temperature-dependent boundary conditions, which will allow a combination of heat-dependent pressures and densities (hence affecting speed). This would be an extremely interesting addition, as it would allow simple modeling of a heated aircraft wing in a very cold environment.
+
+
+
+%\begin{itemize}
+%\item Donec dolor arcu, rutrum id molestie in, viverra sed diam
+%\end{itemize}
+
+% Footnote example:
+%Text requiring further explanation\footnote{Example footnote}.
+
+%------------------------------------------------
+
+%\section{Results}
+%TODO
+
+%\begin{table}
+%\caption{Example table}
+%\centering
+%\begin{tabular}{llr}
+%\toprule
+%\multicolumn{2}{c}{Name} \\
+%\cmidrule(r){1-2}
+%First name & Last Name & Grade \\
+%\midrule
+%John & Doe & $7.5$ \\
+%Richard & Miles & $2$ \\
+%\bottomrule
+%\end{tabular}
+%\end{table}
+
+%\begin{equation}
+%\label{eq:emc}
+%e = mc^2
+%\end{equation}
+
+%------------------------------------------------
+
+
+%----------------------------------------------------------------------------------------
+%	DISCUSSION (TODO)
+%----------------------------------------------------------------------------------------
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	APPENDIX
+%----------------------------------------------------------------------------------------
+\newpage
+
+\appendix
+\appendixpage
+\section{Images}
+
+\subsection{Elementary Objects in Fluid Stream}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\includegraphics[width=0.65\textwidth]{final_circle.png}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Steady-state vorticity of a circle in a 2-D wind tunnel.}
+\label{fig:FinalCircle}
+\end{figure}
+\end{centering}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\includegraphics[width=0.65\textwidth]{final_rectangle.png}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Steady-state vorticity of a rectangle in a 2-D wind tunnel.}
+\label{fig:FinalRectangle}
+\end{figure}
+\end{centering}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\includegraphics[width=0.65\textwidth]{final_horizontal.png}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Steady-state vorticity of a horizontal line in a 2-D wind tunnel.}
+\label{fig:FinalHorizontal}
+\end{figure}
+\end{centering}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\includegraphics[width=0.65\textwidth]{final_vertical.png}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Steady-state vorticity of a vertical line in a 2-D wind tunnel.}
+\label{fig:FinalVertical}
+\end{figure}
+\end{centering}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\includegraphics[width=0.65\textwidth]{final_right_angle.png}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Steady-state vorticity of a right-angle line in a 2-D wind tunnel.}
+\label{fig:FinalRightAngle}
+\end{figure}
+\end{centering}
+
+\hfill
+
+
+\subsection{Airfoil Wings and Stability}
+\subsubsection{Stable Flow}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\subcaptionbox{\(t \approx 0\) }{\includegraphics[width = 0.32\textwidth]{stable_airfoil_1.png}}
+\hfill
+\subcaptionbox{\(t > 0\)}{\includegraphics[width = 0.32\textwidth]{stable_airfoil_2.png}}
+\hfill
+\subcaptionbox{\(t >> 0\)}{\includegraphics[width = 0.32\textwidth]{stable_airfoil_3.png}}
+\label{figs:StableAirfoil}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Time evolved vorticies of a NASA 4812 airfoil in a stable fluid flow (low velocity, high viscosity).}
+\end{figure}
+\end{centering}
+
+\subsubsection{Unstable Flow}
+
+\begin{centering}
+\begin{figure}[H]
+\centering
+\graphicspath{ {stream_images/} }
+\subcaptionbox{\(t \approx 0\) }{\includegraphics[width = 0.32\textwidth]{unstable_airfoil_1.png}}
+\hfill
+\subcaptionbox{\(t > 0\)}{\includegraphics[width = 0.32\textwidth]{unstable_airfoil_2.png}}
+\hfill
+\subcaptionbox{\(t >> 0\)}{\includegraphics[width = 0.32\textwidth]{unstable_airfoil_3.png}}
+\label{figs:UnstableAirfoil}
+\captionsetup{format = hang, width = 0.8\textwidth}
+\caption{Time evolved vortices of a NASA 4812 airfoil in an unstable fluid flow (low velocity, high viscosity). Notice the significant diversion beginning at the front of the wing.}
+\end{figure}
+\end{centering}
+
+
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	REFERENCE LIST
+%----------------------------------------------------------------------------------------
+\newpage
+\bibliography{article_2}
+\bibliographystyle{ieeetr}
+
+
+
+%----------------------------------------------------------------------------------------
+
+\end{document}

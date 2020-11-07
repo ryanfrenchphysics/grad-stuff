@@ -1,0 +1,69 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{amsmath}
+
+\input{structure.tex} % Include the file specifying the document structure and custom commands
+
+%----------------------------------------------------------------------------------------
+%	ASSIGNMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{PHSX 567: HW \#2} % Title of the assignment
+
+\author{Ryan French} % Author name
+
+\date{\today} % University, school and/or department name(s) and a date
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\section*{Problem 1} % Unnumbered section
+
+We start with the "Tres Hermanos" numerical method:
+
+\begin{equation}
+		\int_{a}^{b} f(x) dx \approx h \cdot \left(\frac{1}{24}f_0 + \frac{11}{12}f_1 + \frac{1}{24}f_2\right)
+\label{TresHermanos}
+\end{equation}
+
+\noindent where $\left\{a, b \right\}$ are the endpoints of an integral, and $f_i = f(x_i)$. The set of $x_i$s correspond to $\left\{ \frac{\left(b - a\right)}{6},  \frac{\left(b - a\right)}{2},  \frac{5\left(b - a\right)}{6}\right\}$. For an extended rule, where $\left\{a, b\right\}$ are the endpoints of the integral, and is divided into $N$ segments, our $\left(b - a\right) \rightarrow \left(x_{i+1} - x_i\right)$. \\
+
+It is given that the error of the "Tres Hermanos" rule has a truncation error $ E_s \thicksim h^5f^{(4)}$, so we can assume that, since we are applying this rule to non-overlapping subintervals, we have:
+
+\begin{equation}
+E_{ex} \thicksim \sum_{i \: = \: 0}^{N-1} f^{(4)}\left(x_i\right) \cdot h^5
+\label{TresHermanosExtendedError}
+\end{equation}
+
+Following the assumption in equation. \ref{TresHermanosExtendedError}, we can derive the dependence of the extended error with respect to $N$:
+
+\begin{subequations}
+\begin{align}
+E_{ex} \thicksim&\: h^5 \cdot \sum_{i \: = \: 0}^{N-1} f^{(4)}\left(x_i\right) \label{3a}\\
+\thicksim&\: h^5 \cdot N \cdot \frac{\sum_{i \: = \: 0}^{N-1} f^{(4)}\left(x_i\right)}{N} \label{3b} \\
+\thicksim&\: h^4 \cdot N \cdot h \label{3c} \\
+\thicksim&\: h^4 \cdot (b - a) \label{3d} \\
+\thicksim&\: \frac{1}{N^4} \label{3e}
+\end{align}
+\end{subequations}
+
+\noindent where the definition of an average was used in line \ref{3b} ($f^{(4)}$ has been omitted from the subsequent lines). The equation $h \: = \: \frac{(b - a)}{N}$ was used in line \ref{3c} to eliminate the remaining $h$, thus making the "$\thicksim h^4$" more obvious. \\ 
+
+This thus proves both the first and second questions, because the composite error is proportional to $N$ times the single-interval error. Removing this $N$ gives us back the $h^5$ dependence.
+
+
+
+\end{document}
+
+
